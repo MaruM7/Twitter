@@ -1,0 +1,78 @@
+body {
+    font-family: Arial, sans-serif;
+    max-width: 500px;
+    margin: auto;
+    background-color: #e6ecf0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background-color: white;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.logo {
+    width: 50px;
+    height: auto;
+    margin-right: 10px;
+}
+
+h2 {
+    margin: 0;
+    font-size: 1.5em;
+}
+
+.tweet-box {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: white;
+    resize: none;
+}
+
+button {
+    background-color: #1DA1F2;
+    color: white;
+    border: none;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    display: block;
+    margin: 10px auto;
+    width: 100%;
+    font-size: 16px;
+}
+
+button:hover {
+    background-color: #0d8ae5;
+}
+
+#charCount {
+    font-size: 14px;
+    color: gray;
+    text-align: right;
+    width: 100%;
+}
+
+.tweet {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 10px;
+    background-color: white;
+    position: relative;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+    width: 100%;
+}
