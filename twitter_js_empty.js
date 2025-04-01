@@ -59,7 +59,7 @@ function createTweet(text, likes = 0) {
     tweetDiv.appendChild(repliesContainer);
 
     // Añadir el tweet al contenedor de tweets
-    tweetContainer.appendChild(tweetDiv);
+    tweetContainer.prepend(tweetDiv);
 
     // Añadir los eventos de los botones usando el método addTweetEvents
     addTweetEvents(tweetDiv);
@@ -86,26 +86,86 @@ function addTweetEvents(tweetDiv) {
     //TODO: Añadir el evento al botón de like. 
     //Este evento comprobará si se ha dado like, sumando o restando el like en caso de tenerlo previamente o no
     //---------------------------------------------------------------------------------------------------------
-    
+    likeButton.addEventListener("click", function () {
+        if (liked) {
+            likes--;
+            likeButton.textContent = "Like";
+        } else {
+            likes++;
+            likeButton.textContent = "Unlike";
+        }
+        liked = !liked;
+        likeCount.textContent = `Likes: ${likes}`;
+    });
     //TODO: Añadir el evento al botón eliminar. Este eliminará el tweet
     //------------------------------------------------------------------
+    deleteButton.addEventListener("click", function () {
+        tweetDiv.remove();
+    });
 
     //TODO: Añadir el evento al botón de respuesta.
-    // 1) Creará un un nuevo elemento que será un input de tipo "text"
-    // 2) Creará el botón para enviar nuestra respuesta
-    // 3) Lo añadirá al "repliesContainer"
-    // 4) Añadirá el evento al botón de enviar:
-    //      4.1) Comprobará que el input tiene texto
-    //      4.2) Creará un div con el texto del input y lo añadirá al "repliesContainer"
-    //      4.3) Eliminará el input y el botón de enviar
+    replyButton.addEventListener("click", function () {
+        // 1) Crear un nuevo elemento que será un input de tipo "text"
+        const replyInput = document.createElement("input");
+        replyInput.type = "text";
+        replyInput.placeholder = "Escribe tu respuesta";
+        replyInput.classList.add("reply-input");
+
+        // 2) Crear el botón para enviar nuestra respuesta
+        const sendReplyButton = document.createElement("button");
+        sendReplyButton.textContent = "Enviar";
+        sendReplyButton.classList.add("send-reply-btn");
+
+        // 3) Añadir el input y el botón al "repliesContainer"
+        repliesContainer.appendChild(replyInput);
+        repliesContainer.appendChild(sendReplyButton);
+
+        // 4) Añadir el evento al botón de enviar
+        sendReplyButton.addEventListener("click", function () {
+            // 4.1) Comprobar que el input tiene texto
+            const replyText = replyInput.value.trim();
+            if (replyText === "") return;
+
+            // 4.2) Crear un div con el texto del input y añadirlo al "repliesContainer"
+            const replyDiv = document.createElement("div");
+            replyDiv.textContent = replyText;
+            replyDiv.classList.add("reply");
+            repliesContainer.appendChild(replyDiv);
+
+            // 4.3) Eliminar el input y el botón de enviar
+            replyInput.remove();
+            sendReplyButton.remove();
+        });
+    });
 
 }
 
+async function login() {
+    const usuario = document.getElementById("username").value;
+    const contraseña = document.getElementById("password").value;
+    const mensaje = document.getElementById("loginMensaje");
+    console.log("llega");
 
-///--------------------------------------------------------------------------------
-///-----------------------------------Método OnLoad-----------------------------
-///--------------------------------------------------------------------------------
-window.onload = function () {
+    try {
+        console.log("hola");
+        const respuesta = await fetch("http://localhost:3000/usuarios");
+        const datos = await respuesta.json();
+
+        if (usuario === datos.nombre && contraseña === datos.contraseña) {
+            mensaje.style.color = "green";
+            mensaje.textContent = "Inicio de sesión exitoso";
+            iniciarTwitter();
+        } else {
+            mensaje.style.color = "red";
+            mensaje.textContent = "Usuario o contraseña incorrectos";
+        }
+    } catch (error) {
+        console.log(error);
+        mensaje.style.color = "red";
+        mensaje.textContent = "Error al conectar con el servidor";
+}
+}
+function iniciarTwitter() {
     sampleTweets.forEach(tweet => createTweet(tweet.text, tweet.likes));
 
     tweetInput.addEventListener("input", function () {
@@ -119,4 +179,10 @@ window.onload = function () {
         tweetInput.value = "";
         charCount.textContent = "0/280";
     });
+
+    
+
+}
+    window.onload = function () {
+        iniciarTwitter();
 }

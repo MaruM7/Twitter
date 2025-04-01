@@ -7,6 +7,23 @@
     <link rel="stylesheet" href="twitter_css.css">
 </head>
 <body>
+    <div>
+        <form action="" method="post">
+            <label for="username">Usuario:</label>
+            <input type="text" id="username" name="username" required>
+            <br>
+            <label for="password">Contraseña:</label>
+            <input type="password" id="password" name="password" required>
+            <br>
+            <label for="remember">
+                <input type="checkbox" id="remember" name="remember">
+                Recordar
+            </label>
+            <br>
+            <button type="submit" onclick="login()">Iniciar Sesión</button>
+        </form>
+    </div>
+    <div style="display: none;" id="twitterContainer">
     <header>
         <img src="logo.svg" height="40" alt="Logo" class="logo">
         <h2>Práctica Twitter</h2>
@@ -16,5 +33,6 @@
     <p id="charCount">0/280</p>
     <div id="tweetContainer"></div> <!--Aquí deberán añadirse los tweets que se vayan creando y los de ejemplo-->
     <script src="twitter_js_empty.js"></script>
+    </div>
 </body>
 </html>
