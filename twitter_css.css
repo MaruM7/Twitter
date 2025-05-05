@@ -76,3 +76,19 @@ button:hover {
     box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
     width: 100%;
 }
+
+#favoritesContainer {
+    margin-top: 20px;
+    width: 100%;
+    background-color: #f5f8fa;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+#favoritesContainer h3 {
+    margin: 0 0 10px 0;
+    font-size: 1.2em;
+    color: #333;
+}

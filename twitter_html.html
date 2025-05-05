@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="twitter_css.css">
 </head>
 <body>
-    <div>
+    <div style="display: block;" id="loginContainer">
         <form action="" method="post">
             <label for="username">Usuario:</label>
             <input type="text" id="username" name="username" required>
@@ -20,7 +20,7 @@
                 Recordar
             </label>
             <br>
-            <button type="submit" onclick="login()">Iniciar Sesión</button>
+            <button type="submit" id="loginButton">Iniciar Sesión</button>
         </form>
     </div>
     <div style="display: none;" id="twitterContainer">
@@ -29,10 +29,16 @@
         <h2>Práctica Twitter</h2>
     </header>
     <textarea id="tweetInput" class="tweet-box" placeholder="¿Qué está pasando?" maxlength="280"></textarea>
+    <input type="file" id="imageInput" accept="image/*" style="margin-top: 10px;">
     <button id="tweetButton">Tweet</button>
     <p id="charCount">0/280</p>
     <div id="tweetContainer"></div> <!--Aquí deberán añadirse los tweets que se vayan creando y los de ejemplo-->
+    <div id="favoritesContainer">
+        <h3>Favoritos</h3>
+        <div id="favoritesList"></div> <!-- Aquí se mostrarán los tweets favoritos -->
+    </div>
     <script src="twitter_js_empty.js"></script>
+    <button type="submit" id="logoutButton">Cerrar Sesion</button>
     </div>
 </body>
 </html>

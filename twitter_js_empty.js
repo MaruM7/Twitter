@@ -6,6 +6,9 @@ const tweetButton = document.getElementById("tweetButton");
 const charCount = document.getElementById("charCount");
 const tweetContainer = document.getElementById("tweetContainer");
 
+// Lista para almacenar los tweets favoritos
+let favorites = JSON.parse(getCookie("favorites") || "[]");
+
 const sampleTweets = [
     { text: "Este es un tweet de ejemplo!", likes: 3 },
     { text: "Aprendiendo a usar eventos", likes: 5 },
@@ -17,9 +20,34 @@ const sampleTweets = [
 ///----------------------------------Funciones------------------------------------
 ///--------------------------------------------------------------------------------
 
-//PRE: Recibe el texto que tendrá el tweet y los likes que tiene
+// Función para establecer una cookie
+function setCookie(name, value, days) {
+    const date = new Date();
+    date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + date.toUTCString();
+    document.cookie = `${name}=${encodeURIComponent(value)};${expires};path=/`;
+}
+
+// Función para obtener una cookie
+function getCookie(name) {
+    const cookies = document.cookie.split("; ");
+    for (let i = 0; i < cookies.length; i++) {
+        const [key, value] = cookies[i].split("=");
+        if (key === name) {
+            return decodeURIComponent(value);
+        }
+    }
+    return null;
+}
+
+// Función para eliminar una cookie
+function deleteCookie(name) {
+    document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+}
+
+//PRE: Recibe el texto que tendrá el tweet, los likes que tiene y opcionalmente una imagen
 //POST: Añade al contenedor de tweets "tweetContainer" un tweet con los botones de responder, eliminar y like/unlike
-function createTweet(text, likes = 0) {
+function createTweet(text, likes = 0, image = null) {
     // Crear el contenedor principal del tweet
     const tweetDiv = document.createElement("div");
     tweetDiv.classList.add("tweet");
@@ -28,6 +56,16 @@ function createTweet(text, likes = 0) {
     const tweetText = document.createElement("p");
     tweetText.textContent = text;
     tweetDiv.appendChild(tweetText);
+
+    // Si hay una imagen, añadirla al tweet
+    if (image) {
+        const tweetImage = document.createElement("img");
+        tweetImage.src = image;
+        tweetImage.alt = "Tweet Image";
+        tweetImage.style.maxWidth = "100%";
+        tweetImage.style.marginTop = "10px";
+        tweetDiv.appendChild(tweetImage);
+    }
 
     // Crear el elemento para el contador de likes
     const likeCount = document.createElement("span");
@@ -53,6 +91,12 @@ function createTweet(text, likes = 0) {
     replyButton.textContent = "Responder";
     tweetDiv.appendChild(replyButton);
 
+    // Crear el botón de favorito
+    const favoriteButton = document.createElement("button");
+    favoriteButton.classList.add("favorite-btn");
+    favoriteButton.textContent = favorites.some(fav => fav.text === text) ? "Favorito ✔" : "Favorito";
+    tweetDiv.appendChild(favoriteButton);
+
     // Crear el contenedor para las respuestas
     const repliesContainer = document.createElement("div");
     repliesContainer.classList.add("replies");
@@ -63,8 +107,51 @@ function createTweet(text, likes = 0) {
 
     // Añadir los eventos de los botones usando el método addTweetEvents
     addTweetEvents(tweetDiv);
+
+    // Añadir evento al botón de favorito
+    favoriteButton.addEventListener("click", function () {
+        const isFavorite = favorites.some(fav => fav.text === text);
+        if (isFavorite) {
+            // Quitar de favoritos
+            favorites = favorites.filter(fav => fav.text !== text);
+            favoriteButton.textContent = "Favorito";
+        } else {
+            // Añadir a favoritos
+            favorites.push({ text, likes, image });
+            favoriteButton.textContent = "Favorito ✔";
+        }
+        updateFavorites();
+    });
 }
 
+// Función para actualizar la sección de favoritos
+function updateFavorites() {
+    const favoritesList = document.getElementById("favoritesList");
+    favoritesList.innerHTML = ""; // Limpiar la lista de favoritos
+
+    favorites.forEach(favoriteTweet => {
+        const favoriteDiv = document.createElement("div");
+        favoriteDiv.classList.add("tweet");
+
+        const favoriteText = document.createElement("p");
+        favoriteText.textContent = favoriteTweet.text;
+        favoriteDiv.appendChild(favoriteText);
+
+        if (favoriteTweet.image) {
+            const favoriteImage = document.createElement("img");
+            favoriteImage.src = favoriteTweet.image;
+            favoriteImage.alt = "Tweet Image";
+            favoriteImage.style.maxWidth = "100%";
+            favoriteImage.style.marginTop = "10px";
+            favoriteDiv.appendChild(favoriteImage);
+        }
+
+        favoritesList.appendChild(favoriteDiv);
+    });
+
+    // Guardar los favoritos en cookies
+    setCookie("favorites", JSON.stringify(favorites), 7); // Guardar por 7 días
+}
 
 // PRE: Recibe un elemento 'tweetDiv' que representa un tweet ya creado en el DOM. 
 //       Este debe contener botones con las clases 'like-btn', 'delete-btn' y 'reply-btn', 
@@ -143,27 +230,37 @@ function addTweetEvents(tweetDiv) {
 async function login() {
     const usuario = document.getElementById("username").value;
     const contraseña = document.getElementById("password").value;
-    const mensaje = document.getElementById("loginMensaje");
-    console.log("llega");
+    const recordar = document.getElementById("remember").checked;
+    const contenedorTwitter = document.getElementById("twitterContainer");
+    const contenedorLogin = document.getElementById("loginContainer");
 
     try {
-        console.log("hola");
         const respuesta = await fetch("http://localhost:3000/usuarios");
         const datos = await respuesta.json();
-
         if (usuario === datos.nombre && contraseña === datos.contraseña) {
-            mensaje.style.color = "green";
-            mensaje.textContent = "Inicio de sesión exitoso";
+            alert("Login correcto");
+            if (recordar) {
+                localStorage.setItem("usuario", usuario);
+                localStorage.setItem("contraseña", contraseña);
+            }
+            contenedorLogin.style.display = "none";
+            contenedorTwitter.style.display = "block";
             iniciarTwitter();
         } else {
-            mensaje.style.color = "red";
-            mensaje.textContent = "Usuario o contraseña incorrectos";
+            alert("Usuario o contraseña incorrectos");
         }
     } catch (error) {
         console.log(error);
-        mensaje.style.color = "red";
-        mensaje.textContent = "Error al conectar con el servidor";
+        alert("Error al realizar la petición");
+    }
 }
+function logout() {
+    const contenedorTwitter = document.getElementById("twitterContainer");
+    const contenedorLogin = document.getElementById("loginContainer");
+    contenedorLogin.style.display = "block";
+    contenedorTwitter.style.display = "none";
+    localStorage.removeItem("usuario");
+    localStorage.removeItem("contraseña");
 }
 function iniciarTwitter() {
     sampleTweets.forEach(tweet => createTweet(tweet.text, tweet.likes));
@@ -175,8 +272,25 @@ function iniciarTwitter() {
     tweetButton.addEventListener("click", function () {
         const tweetText = tweetInput.value.trim();
         if (tweetText === "") return;
-        createTweet(tweetText);
+
+        // Leer la imagen seleccionada
+        const file = document.getElementById("imageInput").files[0];
+        let imageUrl = null;
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                imageUrl = event.target.result;
+                createTweet(tweetText, 0, imageUrl); // Crear el tweet con la imagen
+            };
+            reader.readAsDataURL(file);
+        } else {
+            createTweet(tweetText); // Crear el tweet sin imagen
+        }
+
+        // Limpiar el input de texto y el input de imagen
         tweetInput.value = "";
+        document.getElementById("imageInput").value = "";
         charCount.textContent = "0/280";
     });
 
@@ -184,5 +298,26 @@ function iniciarTwitter() {
 
 }
     window.onload = function () {
-        iniciarTwitter();
-}
+
+        const savedUser = localStorage.getItem("usuario");
+        const savedPassword = localStorage.getItem("contraseña");
+
+        if (savedUser && savedPassword) {
+            document.getElementById("username").value = savedUser;
+            document.getElementById("password").value = savedPassword;
+            login();
+        }
+
+        document.getElementById("loginButton").addEventListener("click", function (event) {
+            event.preventDefault();
+            login();
+        });
+
+        document.getElementById("logoutButton").addEventListener("click", function (event) {
+            event.preventDefault();
+            logout();
+        });
+
+        // Cargar favoritos
+        updateFavorites();
+    };
