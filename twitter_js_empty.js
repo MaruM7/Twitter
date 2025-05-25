@@ -15,6 +15,8 @@ const sampleTweets = [
     { text: "Aprendiendo a manipular el DOM", likes: 7 }
 ];
 
+// Añade esta variable global para almacenar todos los tweets (ejemplo + nuevos)
+let allTweets = [...sampleTweets];
 
 ///--------------------------------------------------------------------------------
 ///----------------------------------Funciones------------------------------------
@@ -45,16 +47,24 @@ function deleteCookie(name) {
     document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
 }
 
+// Función para convertir hashtags en enlaces clicables
+function linkifyHashtags(text) {
+    // Detecta hashtags y los convierte en enlaces
+    return text.replace(/#(\w+)/g, function(match, tag) {
+        return `<a href="#" class="hashtag-link" data-hashtag="${tag}">${match}</a>`;
+    });
+}
+
 //PRE: Recibe el texto que tendrá el tweet, los likes que tiene y opcionalmente una imagen
 //POST: Añade al contenedor de tweets "tweetContainer" un tweet con los botones de responder, eliminar y like/unlike
-function createTweet(text, likes = 0, image = null) {
+function createTweet(text, likes = 0, image = null, addToAllTweets = false) {
     // Crear el contenedor principal del tweet
     const tweetDiv = document.createElement("div");
     tweetDiv.classList.add("tweet");
 
-    // Crear el elemento para el texto del tweet
+    // Usar linkifyHashtags para el texto del tweet
     const tweetText = document.createElement("p");
-    tweetText.textContent = text;
+    tweetText.innerHTML = linkifyHashtags(text);
     tweetDiv.appendChild(tweetText);
 
     // Si hay una imagen, añadirla al tweet
@@ -105,6 +115,11 @@ function createTweet(text, likes = 0, image = null) {
     // Añadir el tweet al contenedor de tweets
     tweetContainer.prepend(tweetDiv);
 
+    // Si es un tweet nuevo del usuario, lo añadimos a allTweets
+    if (addToAllTweets) {
+        allTweets.push({ text, likes, image });
+    }
+
     // Añadir los eventos de los botones usando el método addTweetEvents
     addTweetEvents(tweetDiv);
 
@@ -121,6 +136,61 @@ function createTweet(text, likes = 0, image = null) {
             favoriteButton.textContent = "Favorito ✔";
         }
         updateFavorites();
+    });
+
+    // Añadir eventos a los hashtags (opcional: mostrar tweets con ese hashtag)
+    tweetText.querySelectorAll('.hashtag-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const hashtag = this.dataset.hashtag;
+            filterTweetsByHashtag(hashtag);
+        });
+    });
+}
+
+// Modifica iniciarTwitter para usar createTweet sin añadir los de ejemplo a allTweets dos veces
+function iniciarTwitter() {
+    allTweets = [...sampleTweets]; // Reinicia allTweets con los de ejemplo
+    tweetContainer.innerHTML = ""; // Limpia el contenedor
+    allTweets.forEach(tweet => createTweet(tweet.text, tweet.likes, tweet.image));
+
+    tweetInput.addEventListener("input", function () {
+        charCount.textContent = `${this.value.length}/280`;
+    });
+
+    tweetButton.addEventListener("click", function () {
+        const tweetText = tweetInput.value.trim();
+        if (tweetText === "") return;
+
+        // Leer la imagen seleccionada
+        const file = document.getElementById("imageInput").files[0];
+        let imageUrl = null;
+
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                imageUrl = event.target.result;
+                createTweet(tweetText, 0, imageUrl, true); // true: añadir a allTweets
+            };
+            reader.readAsDataURL(file);
+        } else {
+            createTweet(tweetText, 0, null, true); // true: añadir a allTweets
+        }
+
+        // Limpiar el input de texto y el input de imagen
+        tweetInput.value = "";
+        document.getElementById("imageInput").value = "";
+        charCount.textContent = "0/280";
+    });
+}
+
+// Modifica filterTweetsByHashtag para buscar en allTweets
+function filterTweetsByHashtag(hashtag) {
+    tweetContainer.innerHTML = "";
+    allTweets.forEach(tweet => {
+        if (tweet.text.includes(`#${hashtag}`)) {
+            createTweet(tweet.text, tweet.likes, tweet.image);
+        }
     });
 }
 
@@ -263,7 +333,9 @@ function logout() {
     localStorage.removeItem("contraseña");
 }
 function iniciarTwitter() {
-    sampleTweets.forEach(tweet => createTweet(tweet.text, tweet.likes));
+    allTweets = [...sampleTweets]; // Reinicia allTweets con los de ejemplo
+    tweetContainer.innerHTML = ""; // Limpia el contenedor
+    allTweets.forEach(tweet => createTweet(tweet.text, tweet.likes, tweet.image));
 
     tweetInput.addEventListener("input", function () {
         charCount.textContent = `${this.value.length}/280`;
@@ -281,11 +353,11 @@ function iniciarTwitter() {
             const reader = new FileReader();
             reader.onload = function (event) {
                 imageUrl = event.target.result;
-                createTweet(tweetText, 0, imageUrl); // Crear el tweet con la imagen
+                createTweet(tweetText, 0, imageUrl, true); // true: añadir a allTweets
             };
             reader.readAsDataURL(file);
         } else {
-            createTweet(tweetText); // Crear el tweet sin imagen
+            createTweet(tweetText, 0, null, true); // true: añadir a allTweets
         }
 
         // Limpiar el input de texto y el input de imagen
